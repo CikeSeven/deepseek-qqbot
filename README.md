@@ -33,3 +33,25 @@ pip install -r requirements.txt
 ```
 python bot/bot.py
 ```
+
+## 使用方法
+成功启动后
+
+![image](https://github.com/user-attachments/assets/33d1584c-e349-4fd5-9c6f-e90aed0de832)
+
+#### 开启机器人
+在你要使用的群聊发送 `/open` 
+成功后机器人会发送成功私信
+
+#### AI聊天
+艾特机器人发送消息，即可进行AI对话
+
+#### 关闭当前群聊
+群聊中发送`/close`
+成功后机器人会发送成功私信
+
+## 效果预览
+
+![39db0d3cb04dd3f8e13017d32127c69d_720](https://github.com/user-attachments/assets/f6839acf-f99e-4308-900f-635c6cd27082)
+![4c1d8ceb9d6c45b7b4a5d610b5953630_720](https://github.com/user-attachments/assets/0e0d2690-4e96-41df-8227-4fb877e5512f)
+
