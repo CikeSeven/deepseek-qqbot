@@ -1,11 +1,13 @@
+import logging
 import aiohttp
 import json
 import requests
 
+from config import BOT_CONFIG
 
 class BotService:
     def __init__(self):
-        self.base_url = "http://127.0.0.1:3000"  # go-cqhttp的地址
+        self.base_url = BOT_CONFIG['api_base_url']
 
     async def send_private_message(self, user_id: int, message: str) -> bool:
         """发送私聊消息"""
@@ -19,10 +21,10 @@ class BotService:
             async with aiohttp.ClientSession() as session:
                 async with session.post(url, json=data) as response:
                     response_data = await response.json()
-                    print(f"\n=== 发送私聊消息响应 ===\n{json.dumps(response_data, ensure_ascii=False, indent=2)}\n")
+                    logging.info(f"\n=== 发送私聊消息响应 ===\n{json.dumps(response_data, ensure_ascii=False, indent=2)}\n")
                     return response.status == 200
         except Exception as e:
-            print(f"\n=== 发送私聊消息失败 ===\n{str(e)}\n")
+            logging.warning(f"\n=== 发送私聊消息失败 ===\n{str(e)}\n")
             return False
 
 
@@ -39,11 +41,11 @@ class BotService:
                     "qq": str(user_id)
                 }
             })
-            # 添加文本信息，确保在新的一行
+            
             message_data.append({
                 "type": "text",
                 "data": {
-                    "text": f"\n{message}"  # 在消息前添加换行符
+                    "text": f"\n{message}"
                 }
             })
         else:
@@ -64,9 +66,34 @@ class BotService:
             async with aiohttp.ClientSession() as session:
                 async with session.post(url, json=data) as response:
                     response_data = await response.json()
-                    print(f"\n=== 发送群消息响应 ===\n{json.dumps(response_data, ensure_ascii=False, indent=2)}\n")
+                    logging.info(f"\n=== 发送群消息响应 ===\n{json.dumps(response_data, ensure_ascii=False, indent=2)}\n")
                     return response.status == 200
         except Exception as e:
-            print(f"\n=== 发送群消息失败 ===\n{str(e)}\n")
+            logging.warning(f"\n=== 发送群消息失败 ===\n{str(e)}\n")
             return False
 
+
+    async def get_user_balance(self) -> str:
+        url = "https://api.deepseek.com/user/balance"
+
+        payload={}
+        headers = {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer '+ BOT_CONFIG['key']
+        }
+        response = requests.request("GET", url, headers=headers, data=payload)
+        if response.status_code is not 200:
+            print(response.text)
+            return "请求错误: " + response.status_code
+        data = response.text
+        data = json.loads(data)
+        balance_infos = data['balance_infos']
+        is_available = data['is_available']
+        for info in balance_infos:
+            currency = info['currency']
+            total_balance = info['total_balance']
+            granted_balance = info['granted_balance']
+            topped_up_balance = info['topped_up_balance']
+        message = f"可用: {is_available}\n货币: {currency}\n总余额: {total_balance}\n充值余额: {topped_up_balance}\n赠送余额: {granted_balance}"
+        
+        return message

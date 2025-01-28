@@ -19,17 +19,11 @@ class GroupManager:
         Path(group_dir).mkdir(exist_ok=True)
         return os.path.join(group_dir, 'message.json')
 
-    def get_messages(self, group_id) ->json:
-        config_path = self.get_group_messages_path(group_id)
-
-
-    
     def open_group(self, group_id: int) -> bool:
         config_path = self.get_group_config_path(group_id)
         config = {
             "group_id": group_id,
             "open": True,
-            "created_at": str(Path(config_path).stat().st_ctime if Path(config_path).exists() else "")
         }
         
         with open(config_path, 'w', encoding='utf-8') as f:
