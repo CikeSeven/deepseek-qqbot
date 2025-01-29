@@ -43,3 +43,12 @@ class GroupManager:
         with open(config_path, 'w', encoding='utf-8') as f:
             json.dump(config, f, ensure_ascii=False, indent=4)
         return True
+    
+    def clear(self, group_id: int) -> bool:
+        messages_path = self.get_group_messages_path(group_id)
+        if not Path(messages_path).exists():
+            return False
+        data = []
+        with open(messages_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+        return True

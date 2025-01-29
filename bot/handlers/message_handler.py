@@ -26,7 +26,11 @@ class MessageHandler:
                 success = self.group_manager.close_group(event.group_id)
                 if success:
                     await self.bot_service.send_private_message(event.user_id, f"群{event.group_id}关闭成功")
-        
+            if(text == '/clear'):
+                success = self.group_manager.clear(event.group_id)
+                if success:
+                    await self.bot_service.send_group_message(event.group_id, "已清空对话记录", at_user=False)
+                return
 
         # 检查群是否开启
         config_path = self.group_manager.get_group_config_path(event.group_id)
