@@ -52,6 +52,9 @@ python bot/bot.py
 群聊中发送`/close`
 成功后机器人会发送成功私信
 
+#### 清空消息记录，使用后机器人恢复出厂设置
+群聊中发送`/clear`
+
 ## 效果预览
 
 ![39db0d3cb04dd3f8e13017d32127c69d_720](https://github.com/user-attachments/assets/f6839acf-f99e-4308-900f-635c6cd27082)
