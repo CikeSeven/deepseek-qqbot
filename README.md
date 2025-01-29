@@ -6,6 +6,7 @@ DeepSeek QQBot 是一个基于 LLOneBot 和 DeepSeek API 的 QQ 机器人，提�
 ## 前置条件 / Prerequisites
 
 在使用本项目之前，请确保你已经安装了 [LLOneBot](https://github.com/LLOneBot/LLOneBot) 或相同协议的QQ消息监听软件，详见[LLOneBot](https://github.com/LLOneBot/LLOneBot)。
+设置上报地址为`http://0.0.0.0:8080`
 
 ## 安装步骤
 
