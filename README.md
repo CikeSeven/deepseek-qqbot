@@ -3,6 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 DeepSeek QQBot 是一个基于 LLOneBot 和 DeepSeek API 的 QQ 机器人，提供智能聊天、问答等功能。
+
 支持深度思考。
 ## 前置条件 / Prerequisites
 
