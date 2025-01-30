@@ -6,9 +6,10 @@ BOT_CONFIG = {
     "api_base_url": "http://localhost:3000",
     "deepseek-reasoner": True,      #是否使用推理模型 即深度思考，开启后消息回复时间会变长
     'show_reasoning_content': True,     #是否显示推理过程
-    
-    "bili_video_prase": True, #是否解析b站视频，需要安装ffmpeg，开启后请在下方填上你的b站cookie
-    "bili_cookie": "",
+
+    #是否开启B站视频解析，需要安装ffmpeg，并添加到系统变量，具体请问Ai，完成后请重启编辑器
+    "bili_video_prase": False,
+    "bili_cookie": "",  #开启后需要在这里填上你的B站Cookie
     "bili_info": True,   #是否获取b站视频信息
     "limit_time": 4,    #下载视频最大时长， 单位分钟
 }
