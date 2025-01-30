@@ -50,6 +50,10 @@ class MessageHandler:
                 if success:
                     await self.bot_service.send_group_message(event.group_id, "已清空对话记录", at_user=False)
                 return
+            if event.raw_message.strip() == '/balance':
+                data = await self.bot_service.get_user_balance()
+                await self.bot_service.send_group_message(event.group_id, data, at_user=False)
+                return
 
         # 检查群是否开启
         config_path = self.group_manager.get_group_config_path(event.group_id)

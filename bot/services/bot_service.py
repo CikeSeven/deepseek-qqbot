@@ -129,7 +129,7 @@ class BotService:
             logging.info(f"\n=== 发送群消息失败 ===\n{str(e)}\n")
             return False
     
-    async def get_user_balance(self) -> str:
+    async def get_user_balance(self):
         url = "https://api.deepseek.com/user/balance"
 
         payload={}

@@ -1,10 +1,12 @@
 import json
+import logging
 from pathlib import Path
 import re
-from openai import OpenAI
+from openai import OpenAI, OpenAIError
 from config import BOT_CONFIG
 from services.bot_service import BotService
 from utils.group_manager import GroupManager
+import logging
 
 class Chat:
     def __init__(self):
@@ -67,7 +69,7 @@ class Chat:
             await self.bot_service.send_group_message(group_id, message, at_user=False)
 
         except Exception as e:
-            print(f"An error occurred while sending message: {e}")
+            logging.error(f"openAI异常: {str(e)}")
     
     async def handle_chat(self, group_id, card, user_id, content):
         client = OpenAI(api_key=BOT_CONFIG['key'], base_url="https://api.deepseek.com")
@@ -83,10 +85,14 @@ class Chat:
         # 添加用户消息到列表
         user_message = {"role": "user", "content": f"{card}({user_id}) 对你说: {content}"}
         messages.append(user_message)
+        if BOT_CONFIG['deepseek-reasoner']:
+            model = 'deepseek-reasoner'
+        else:
+            model = 'deepseek-chat'
         try:
         # 调用 API 获取回复
             response = client.chat.completions.create(
-                model="deepseek-chat",
+                model=model,
                 messages=messages,
                 stream=False
             )
@@ -94,15 +100,29 @@ class Chat:
             ai_message = response.choices[0].message
             
             # 将 AI 回复添加到列表，并保存更新后的消息列表
-            assistant_message = {"role": "assistant", "content": ai_message.content.strip()}
+            assistant_message = {"role": "assistant", "content": ai_message.content}
             messages.append(assistant_message)
             self.save_messages(group_id, messages)  # 保存所有消息
 
             # 发送 AI 回复给群聊
-            message_content = response.choices[0].message.content.strip()
+            message_content = response.choices[0].message.content
+            if BOT_CONFIG['deepseek-reasoner'] and BOT_CONFIG['show_reasoning_content']:
+                message_content = f"<思考> \n{response.choices[0].message.reasoning_content}\n<思考结束>\n****************\n{message_content}"
+            
             await self.bot_service.send_group_message(group_id, message_content, at_user=False)
+        except OpenAIError as e:
+            logging.error(f"OpenAI API error occurred: {e}")
+            try:
+                response_data = e.response.json()  # 尝试解析响应体
+                logging.error(f"Response data: {response_data}")
+            except Exception:
+                logging.error(f"Raw response: {e.response.text}")
+        except json.JSONDecodeError as e:
+            logging.error(f"JSON decode error occurred: {e}")
+            logging.error(f"Raw response: {response.text if 'response' in locals() else 'No response'}")
         except Exception as e:
-            print(f"An error occurred while sending message: {e}")
+            logging.error(f"An error occurred while sending message: {e}")
+            logging.error(f"Raw response: {response.text if 'response' in locals() else 'No response'}")
 
         
 
@@ -116,13 +136,19 @@ class Chat:
 
      # 加载特定群聊的消息记录
     def load_messages(self, group_id):
-        messages_file = Path(self.group_manager.get_group_messages_path(group_id))
-        if messages_file.exists():
-            with open(messages_file, 'r', encoding='utf-8') as f:
-                if f.read() == '':
-                    return []
-                return json.load(f)
-        else:
+        #bug高发地
+        try:
+            messages_file = Path(self.group_manager.get_group_messages_path(group_id))
+            if messages_file.exists():
+                with open(messages_file, 'r', encoding='utf-8') as f:
+                    con = f.read()
+                    if con == '' or con == '[]':
+                        return []
+                    return json.loads(con)
+            else:
+                return []
+        except Exception as e:
+            print(f"Error loading messages for group {group_id}: {e}")
             return []
 
     # 获取或初始化特定群聊的消息列表
