@@ -1,8 +1,15 @@
+from html import unescape
 import json
+import re
+from urllib.parse import unquote
+
+from pydantic import ValidationError
 from services.bot_service import BotService
 from utils.group_manager import GroupManager
-from models.message import EventMessage
+from models.message import EventMessage, MiniProgramData
+from utils.mini_program_utils import MiniProgramUtils
 from utils.admin_check import is_admin
+from config import BOT_CONFIG
 
 class MessageHandler:
 
@@ -10,12 +17,24 @@ class MessageHandler:
         from chat.chat import Chat
         self.chat = Chat()
         self.group_manager = GroupManager()
-        self.bot_service = BotService()
-    async def handle_group_message(self, event: EventMessage):
-        if event.post_type != 'message':
-            return
-        text = event.raw_message.strip()
+        self.bot_service = BotService()   
+        self.handle = MiniProgramUtils() 
 
+    async def parse_mini_program(self, raw_data: str):  # 添加这个方法
+        try:
+            # 处理HTML转义和URL解码
+            cleaned = unescape(unquote(raw_data))
+            # 处理反斜杠转义
+            cleaned = cleaned.replace('\\/', '/')
+            data = json.loads(cleaned)
+            mini_program = MiniProgramData(**data)
+            #await self.handle.handle_program(mini_program)
+        except (json.JSONDecodeError, ValidationError) as e:
+            print(f"小程序解析失败: {str(e)}")
+            return None
+        return mini_program
+    async def handle_group_message(self, event: EventMessage):
+        text = event.raw_message.strip()
         #处理管理员指令
         if is_admin(event.user_id):
             if(text == '/open'):
@@ -41,6 +60,18 @@ class MessageHandler:
                     return  # 群未开启，不处理消息
         except:
             return  # 配置文件不存在或出错，不处理消息
+        
+        if event.raw_message[4:8] == 'json':
+            await self.handle.handle_program(event)
+            return
+        if event.post_type != 'message':
+            return
+        if 'b23.tv' in text and BOT_CONFIG['bili_video_prase']:
+            url = re.findall(r'https?://[^\s,。！？]*b23\.tv/[^\s,。！？]+', text)
+            await self.handle.bili_video(url[0], event)
+            return
+
+        #处理分享消息
         message = event.raw_message
         await self.chat.get(event, message)
 

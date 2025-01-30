@@ -1,4 +1,5 @@
 import logging
+import os
 import aiohttp
 import json
 import requests
@@ -71,8 +72,63 @@ class BotService:
         except Exception as e:
             logging.warning(f"\n=== 发送群消息失败 ===\n{str(e)}\n")
             return False
+    async def send_reply_message(self, group_id, message: str, message_id: int):
+        """发送回复消息"""
+        url = f"{self.base_url}/send_group_msg"
+        message_data = []
+            # 添加艾特信息
+        message_data.append({
+            "type": "reply",
+            "data": {
+                "id": str(message_id)
+            }
+        })
+        
+        message_data.append({
+            "type": "text",
+            "data": {
+                "text": message
+            }
+        })
 
-
+        data = {
+            "group_id": group_id,
+            "message": message_data
+        }
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(url, json=data) as response:
+                    response_data = await response.json()
+                    logging.info(f"\n=== 发送群消息响应 ===\n{json.dumps(response_data, ensure_ascii=False, indent=2)}\n")
+                    return response.status == 200
+        except Exception as e:
+            logging.warning(f"\n=== 发送群消息失败 ===\n{str(e)}\n")
+            return False
+    async def send_video(self, group_id, video_path: str) -> bool:
+        url = f"{self.base_url}/send_group_msg"
+        formatted_path = os.path.abspath(video_path)
+        message_data = []
+        message_data.append({
+            "type": "video",
+            "data": {
+                "file": f"file://{formatted_path}"  # 本地视频路径
+            }
+        })
+        data = {
+            "group_id": group_id,
+            "message": message_data,
+        }
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(url, json=data) as response:
+                    response_data = await response.json()
+                    logging.info(f"\n=== 发送群消息响应 ===\n{json.dumps(response_data, ensure_ascii=False, indent=2)}\n")
+                    return response.status == 200
+        except Exception as e:
+            logging.info(f"\n=== 发送群消息失败 ===\n{str(e)}\n")
+            return False
+    
     async def get_user_balance(self) -> str:
         url = "https://api.deepseek.com/user/balance"
 
@@ -83,7 +139,7 @@ class BotService:
         }
         response = requests.request("GET", url, headers=headers, data=payload)
         if response.status_code is not 200:
-            print(response.text)
+            logging.info(response.text)
             return "请求错误: " + response.status_code
         data = response.text
         data = json.loads(data)
