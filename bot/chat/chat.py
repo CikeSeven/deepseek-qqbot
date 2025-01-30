@@ -83,26 +83,27 @@ class Chat:
         # 添加用户消息到列表
         user_message = {"role": "user", "content": f"{card}({user_id}) 对你说: {content}"}
         messages.append(user_message)
-        
+        try:
         # 调用 API 获取回复
-        response = client.chat.completions.create(
-            model="deepseek-chat",
-            messages=messages,
-            stream=False
-        )
-        
-        ai_message = response.choices[0].message
-        
-        # 将 AI 回复添加到列表，并保存更新后的消息列表
-        assistant_message = {"role": "assistant", "content": ai_message.content.strip()}
-        messages.append(assistant_message)
-        self.save_messages(group_id, messages)  # 保存所有消息
-        
-        #print(f"Messages for Group {group_id}: {messages}")
+            response = client.chat.completions.create(
+                model="deepseek-chat",
+                messages=messages,
+                stream=False
+            )
+            
+            ai_message = response.choices[0].message
+            
+            # 将 AI 回复添加到列表，并保存更新后的消息列表
+            assistant_message = {"role": "assistant", "content": ai_message.content.strip()}
+            messages.append(assistant_message)
+            self.save_messages(group_id, messages)  # 保存所有消息
 
-        # 发送 AI 回复给群聊
-        message_content = response.choices[0].message.content.strip()
-        await self.bot_service.send_group_message(group_id, message_content, at_user=False)
+            # 发送 AI 回复给群聊
+            message_content = response.choices[0].message.content.strip()
+            await self.bot_service.send_group_message(group_id, message_content, at_user=False)
+        except Exception as e:
+            print(f"An error occurred while sending message: {e}")
+
         
 
     # 保存特定群聊的消息记录
@@ -118,6 +119,8 @@ class Chat:
         messages_file = Path(self.group_manager.get_group_messages_path(group_id))
         if messages_file.exists():
             with open(messages_file, 'r', encoding='utf-8') as f:
+                if f.read() == '':
+                    return []
                 return json.load(f)
         else:
             return []
