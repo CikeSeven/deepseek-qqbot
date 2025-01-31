@@ -102,9 +102,9 @@ class MiniProgramUtils:
             await self.merge_audio_video(temp_video_path, temp_audio_path, output_file_path)
         if BOT_CONFIG['bili_info']:
             reply_message = f"视频标题: {title}\n作者: {auther[0]}\n发布时间: {pubdate[0]}\n播放: {views[0]} | 点赞: {likes[0]}\n投币: {coins[0]} | 收藏: {favs[0]}\n转发: {shares[0]} | 评论: {comments[0]}\n投币: {coins[0]}"
-        success = await self.bot_service.send_reply_message(group_id=event.group_id, message=reply_message, message_id=event.message_id)
-        if success:
-            print(f"已发送视频信息消息")
+            success = await self.bot_service.send_reply_message(group_id=event.group_id, message=reply_message, message_id=event.message_id)
+            if success:
+                print(f"已发送视频信息消息")
         success = await self.bot_service.send_video(group_id=event.group_id, video_path=output_file_path)
         if success:
             print(f"已发送视频")

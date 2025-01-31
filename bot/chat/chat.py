@@ -2,7 +2,7 @@ import json
 import logging
 from pathlib import Path
 import re
-from openai import OpenAI, OpenAIError
+from openai import APITimeoutError, OpenAI, OpenAIError
 from config import BOT_CONFIG
 from services.bot_service import BotService
 from utils.group_manager import GroupManager
@@ -110,13 +110,17 @@ class Chat:
                 message_content = f"<思考> \n{response.choices[0].message.reasoning_content}\n<思考结束>\n****************\n{message_content}"
             
             await self.bot_service.send_group_message(group_id, message_content, at_user=False)
+        except APITimeoutError as e:
+            logging.error(f"OpenAI API timeout error occurred: {e}")
+            logging.error("No response available for timeout errors.")
         except OpenAIError as e:
             logging.error(f"OpenAI API error occurred: {e}")
+            # 记录原始响应内容（如果有）
             try:
                 response_data = e.response.json()  # 尝试解析响应体
                 logging.error(f"Response data: {response_data}")
             except Exception:
-                logging.error(f"Raw response: {e.response.text}")
+                logging.error(f"Raw response: {e.response.text if hasattr(e, 'response') else 'No response'}")
         except json.JSONDecodeError as e:
             logging.error(f"JSON decode error occurred: {e}")
             logging.error(f"Raw response: {response.text if 'response' in locals() else 'No response'}")
