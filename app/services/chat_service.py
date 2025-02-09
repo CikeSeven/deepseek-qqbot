@@ -61,7 +61,7 @@ class ChatService:
         model = group_config['model']
         if model == ChatModels.DEFAULT.value:
             model = self.config['chat']['model']
-        logging.info(f"{user_id} 发送聊天请求，模型: {model}")
+        logging.info(f"群聊：{group_id} 用户： {user_id} 发送聊天请求，模型: {model}")
         if model == ChatModels.DEEPSEEK_REASONER.value:
             think, message = await self.send_by_reasoner_model(messages, group_id)
             assistant_message = {"role": "assistant", "content": message}
@@ -129,9 +129,11 @@ class ChatService:
             logging.error(f"ambiguous Module client usage error: {e}")
             return "ambiguous Module client usage error"
         except Exception as e:
-            await self.bot_service.send_group_message(group_id, str(e))
+            print(f"错误：{e}")
             logging.warning(e)
-            return "未知错误"
+            if str(e) == "Expecting value: line 1 column 1 (char 0)":
+                return f"服务器繁忙，请稍后再试。"
+            return f"出现未知错误：{e}"
     
     async def send_by_reasoner_model(self, messages, group_id):
             try:
@@ -195,9 +197,11 @@ class ChatService:
                 logging.error(f"ambiguous Module client usage error: {e}")
                 return "", "ambiguous Module client usage error"
             except Exception as e:
-                await self.bot_service.send_group_message(group_id, str(e))
+                print(f"错误：{e}")
                 logging.warning(e)
-                return "", "未知错误"
+                if str(e) == "Expecting value: line 1 column 1 (char 0)":
+                    return "", f"服务器繁忙，请稍后再试。"
+                return "", f"出现未知错误：{e}"
 
     # 保存特定群聊的消息记录
     def save_messages(self, group_id, messages):

@@ -9,24 +9,22 @@ from handlers.message_handler import MessageHandler
 
 import logging
 
-# 配置日志
-logging.basicConfig(
-    level = logging.INFO,
-    format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    filename = 'app.log',
-    filemode = 'a'
-)
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+file_handler = logging.FileHandler('app.log')
+file_handler.setLevel(logging.INFO)
+stream_handler = logging.StreamHandler()
+stream_handler.setLevel(logging.WARNING)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+stream_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+logger.addHandler(stream_handler)
+
 
 app = FastAPI()
 config = get_config()
 message_handler = MessageHandler()
-
-
-# 获取当前脚本所在目录的上一级目录
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-# 构建 dist 文件夹的路径
-DIST_PATH = os.path.join(BASE_DIR, "dist")
 
 @app.post('/')
 async def message_listener(request: Request):
