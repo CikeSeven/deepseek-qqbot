@@ -164,26 +164,45 @@ class BotService:
     async def get_user_balance(self, user_id: int):
         if not is_admin(user_id):
             return "不是管理员"
-        url = "https://api.deepseek.com/user/balance"
 
-        payload={}
+        url = "https://api.deepseek.com/user/balance"
         headers = {
-        'Accept': 'application/json',
-        'Authorization': 'Bearer '+ self.config['chat']['api_key']
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ' + self.config['chat']['api_key']
         }
-        response = requests.request("GET", url, headers=headers, data=payload)
-        if response.status_code != 200:
-            logging.info(response.text)
-            return "请求错误: " + response.status_code
-        data = response.text
-        data = json.loads(data)
-        balance_infos = data['balance_infos']
-        is_available = data['is_available']
-        for info in balance_infos:
-            currency = info['currency']
-            total_balance = info['total_balance']
-            granted_balance = info['granted_balance']
-            topped_up_balance = info['topped_up_balance']
-        message = f"可用: {is_available}\n货币: {currency}\n总余额: {total_balance}\n充值余额: {topped_up_balance}\n赠送余额: {granted_balance}"
-        
-        return message
+
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.get(url, headers=headers) as response:
+                    if response.status != 200:
+                        response_text = await response.text()
+                        logging.info(f"请求错误: {response.status}, 响应内容: {response_text}")
+                        return f"请求错误: {response.status}"
+
+                    data = await response.json()  # 直接解析 JSON 响应
+                    balance_infos = data.get('balance_infos', [])
+                    is_available = data.get('is_available', False)
+
+                    message = "可用: {}\n".format(is_available)
+                    for info in balance_infos:
+                        currency = info.get('currency', '未知')
+                        total_balance = info.get('total_balance', 0)
+                        granted_balance = info.get('granted_balance', 0)
+                        topped_up_balance = info.get('topped_up_balance', 0)
+                        message += (
+                            f"货币: {currency}\n"
+                            f"总余额: {total_balance}\n"
+                            f"充值余额: {topped_up_balance}\n"
+                            f"赠送余额: {granted_balance}\n"
+                        )
+
+                    return message
+            except aiohttp.ClientError as e:
+                logging.error(f"请求失败: {e}")
+                return f"请求失败: {e}"
+            except json.JSONDecodeError as e:
+                logging.error(f"JSON 解析失败: {e}")
+                return "JSON 解析失败"
+            except Exception as e:
+                logging.error(f"未知错误: {e}")
+                return "未知错误"
