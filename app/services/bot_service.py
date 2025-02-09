@@ -193,7 +193,7 @@ class BotService:
                             f"货币: {currency}\n"
                             f"总余额: {total_balance}\n"
                             f"充值余额: {topped_up_balance}\n"
-                            f"赠送余额: {granted_balance}\n"
+                            f"赠送余额: {granted_balance}"
                         )
 
                     return message
