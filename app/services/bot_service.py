@@ -40,8 +40,9 @@ class BotService:
                     logging.info(f"=== 获取机器人信息响应 === {response_data}")
                     return response_data['data']
         except Exception as e:
-            logging.info(f"=== 获取机器人信息失败 === {str(e)}")
-            return False
+            logging.warning(f"=== 获取机器人信息失败 === {str(e)}")
+            print("无法连接到机器人服务！！")
+            raise("请确定是否启动了LLonebot")
 
 
     async def send_group_message(self, group_id: int, message: str, user_id: list = None, at_user: bool = False) -> bool:
