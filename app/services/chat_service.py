@@ -41,6 +41,9 @@ class ChatService:
             messages.append(ai_message)
             self.save_messages(event.group_id, messages)  # 保存所有消息
             return
+        
+        self.config = config.get_config()
+        self.client = OpenAI(api_key = self.config['chat']['api_key'], base_url = self.config['chat']['api_base_url'])
 
         await self.ai_chat(event.group_id, card, event.user_id, text)
 
