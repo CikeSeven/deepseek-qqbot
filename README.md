@@ -51,7 +51,7 @@ pip install -r requirements.txt
 ### 4. 启动机器人
 运行以下命令启动机器人：
 ```bash
-python bot/bot.py
+python app/bot.py
 ```
 
 ### 5.按照提示输入API Key和管理员账号
