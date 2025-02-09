@@ -139,72 +139,72 @@ class ChatService:
             return f"出现未知错误：{e}"
     
     async def send_by_reasoner_model(self, messages, group_id):
-            try:
-                response = self.client.chat.completions.create(
-                    model="deepseek-reasoner",
-                    messages=messages,
-                    stream=False
-                )
-                logging.info(f"调用完毕: {response.choices[0].message}")
-                if self.group_manager.get_config(group_id)['show_reasoning_content'] == 'default':
-                    logging.info("群未配置是否显示思考过程，使用默认配置")
-                    show_reasoning_content = self.config['chat']['show_reasoning_content']
-                else:
-                    show_reasoning_content = self.group_manager.get_config(group_id)['show_reasoning_content']
+        try:
+            response = self.client.chat.completions.create(
+                model="deepseek-reasoner",
+                messages=messages,
+                stream=False
+            )
+            logging.info(f"调用完毕: {response.choices[0].message}")
+            if self.group_manager.get_config(group_id)['show_reasoning_content'] == 'default':
+                logging.info("群未配置是否显示思考过程，使用默认配置")
+                show_reasoning_content = self.config['chat']['show_reasoning_content']
+            else:
+                show_reasoning_content = self.group_manager.get_config(group_id)['show_reasoning_content']
 
-                if show_reasoning_content:
-                    return f"<think>\n{response.choices[0].message.reasoning_content}\n<think>\n************************\n", response.choices[0].message.content
-                
-                return "", response.choices[0].message.content
+            if show_reasoning_content:
+                return f"<think>\n{response.choices[0].message.reasoning_content}\n<think>\n************************\n", response.choices[0].message.content
             
-            except openai.APITimeoutError as e:
-                logging.error(f"api timeout: {e}")
-                return "", "api timeout"
-            except openai.NotFoundError as e:
-                logging.error(f"not found: {e}")
-                return "", "Not Found"
-            except openai.APIStatusError as e:
-                logging.error(f"api status error: {e}")
-                return "", "api status error"
-            except openai.RateLimitError as e:
-                logging.error(f"rate limit error: {e}")
-                return "", "rate limit error"
-            except openai.BadRequestError as e:
-                logging.error(f"bad request error: {e}")
-                return "", "bad requrst error"
-            except openai.APIConnectionError as e:
-                logging.error(f"connection error: {e}")
-                return "", "connection error"
-            except openai.AuthenticationError as e:
-                logging.error(f"authentication error: {e}")
-                return "", "authentication error"
-            except openai.InternalServerError as e:
-                logging.error(f"internal server error: {e}")
-                return "", "internal server error"
-            except openai.PermissionDeniedError as e:
-                logging.error(f"permission denied error: {e}")
-                return "", "permission denied error"
-            except openai.LengthFinishReasonError as e:
-                logging.error(f"length finish reason error: {e}")
-                return "", "length finish reason error"
-            except openai.UnprocessableEntityError as e:
-                logging.error(f"unprocessable entity error: {e}")
-                return "", "unprocessable entity error"
-            except openai.APIResponseValidationError as e:
-                logging.error(f"api response validation error: {e}")
-                return "", "api response validation error"
-            except openai.ContentFilterFinishReasonError as e:
-                logging.error(f"content filter finish reason error: {e}")
-                return "", "content filter finish reason error"
-            except openai._AmbiguousModuleClientUsageError as e:
-                logging.error(f"ambiguous Module client usage error: {e}")
-                return "", "ambiguous Module client usage error"
-            except Exception as e:
-                print(f"错误：{e}")
-                logging.warning(e)
-                if str(e) == "Expecting value: line 1 column 1 (char 0)":
-                    return "", f"服务器繁忙，请稍后再试。"
-                return "", f"出现未知错误：{e}"
+            return "", response.choices[0].message.content
+            
+        except openai.APITimeoutError as e:
+            logging.error(f"api timeout: {e}")
+            return "", "api timeout"
+        except openai.NotFoundError as e:
+            logging.error(f"not found: {e}")
+            return "", "Not Found"
+        except openai.APIStatusError as e:
+            logging.error(f"api status error: {e}")
+            return "", "api status error"
+        except openai.RateLimitError as e:
+            logging.error(f"rate limit error: {e}")
+            return "", "rate limit error"
+        except openai.BadRequestError as e:
+            logging.error(f"bad request error: {e}")
+            return "", "bad requrst error"
+        except openai.APIConnectionError as e:
+            logging.error(f"connection error: {e}")
+            return "", "connection error"
+        except openai.AuthenticationError as e:
+            logging.error(f"authentication error: {e}")
+            return "", "authentication error"
+        except openai.InternalServerError as e:
+            logging.error(f"internal server error: {e}")
+            return "", "internal server error"
+        except openai.PermissionDeniedError as e:
+            logging.error(f"permission denied error: {e}")
+            return "", "permission denied error"
+        except openai.LengthFinishReasonError as e:
+            logging.error(f"length finish reason error: {e}")
+            return "", "length finish reason error"
+        except openai.UnprocessableEntityError as e:
+            logging.error(f"unprocessable entity error: {e}")
+            return "", "unprocessable entity error"
+        except openai.APIResponseValidationError as e:
+            logging.error(f"api response validation error: {e}")
+            return "", "api response validation error"
+        except openai.ContentFilterFinishReasonError as e:
+            logging.error(f"content filter finish reason error: {e}")
+            return "", "content filter finish reason error"
+        except openai._AmbiguousModuleClientUsageError as e:
+            logging.error(f"ambiguous Module client usage error: {e}")
+            return "", "ambiguous Module client usage error"
+        except Exception as e:
+            print(f"错误：{e}")
+            logging.warning(e)
+            if str(e) == "Expecting value: line 1 column 1 (char 0)":
+                return "", f"服务器繁忙，请稍后再试。"
+            return "", f"出现未知错误：{e}"
 
     # 保存特定群聊的消息记录
     def save_messages(self, group_id, messages):
