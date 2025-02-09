@@ -55,6 +55,8 @@ python app/bot.py
 ```
 
 ### 5.按照提示输入API Key和管理员账号
+![image](https://github.com/user-attachments/assets/d1c021a9-67f2-47d2-a425-9b6440460664)
+
 在终端中输入API Key和管理员账号，然后按回车键。
 
 
