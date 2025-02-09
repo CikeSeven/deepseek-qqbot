@@ -3,3 +3,5 @@ config/
 video/
 html_logs/
 __pycache__/
+test/
+app.log
