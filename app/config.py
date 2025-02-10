@@ -93,7 +93,7 @@ def init():
             
         config['chat']['admins'] = admins
 
-        key = getpass.getpass("请输入DeepSeek API Key:")
+        key = getpass.getpass("请输入DeepSeek API Key（输入时不可见）:")
         if api == '1':
             config['chat']['api'] = "tencent"
             config['key_list']['tencent'] = key
