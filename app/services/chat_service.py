@@ -15,7 +15,8 @@ class ChatService:
         self.group_manager = GroupManager()
         self.bot_service = BotService()
         self.config = config.get_config()
-        self.client = OpenAI(api_key = self.config['chat']['api_key'], base_url = self.config['chat']['api_base_url'])
+        self.api = self.config['chat']['api']
+        self.client = OpenAI(api_key = self.config['key_list'][self.api], base_url = self.config['api_list'][self.api])
 
     async def get(self, event: EventMessage, text: str):
         message = event.message
@@ -43,7 +44,8 @@ class ChatService:
             return
         
         self.config = config.get_config()
-        self.client = OpenAI(api_key = self.config['chat']['api_key'], base_url = self.config['chat']['api_base_url'])
+        self.api = self.config['chat']['api']
+        self.client = OpenAI(api_key = self.config['key_list'][self.api], base_url = self.config['api_list'][self.api])
 
         await self.ai_chat(event.group_id, card, event.user_id, text)
 
@@ -81,14 +83,36 @@ class ChatService:
         
     async def send_by_chat_model(self, messages, group_id):
         #function calling暂不可用，等官方修复
+        if self.api == 'tencent':
+            model = "deepseek-v3"
+        else:
+            model = "deepseek-chat"
         try:
             response = self.client.chat.completions.create(
-                model = "deepseek-chat",
+                model = model,
                 messages = messages,
-                stream=False
+                stream=self.config['chat']['stream'],
+                max_tokens=self.config['chat']['max_tokens'] * 1024,
+                temperature=self.config['chat']['temperature'],
             )
-            logging.info(f"调用完毕: {response.choices[0]}")
-            return response.choices[0].message.content
+            content = ""
+            
+            if self.config['chat']['stream']:
+                for chunk in response:
+                    content_chunk = chunk.choices[0].delta.content
+                    if content_chunk == None:
+                        continue
+                    content += content_chunk
+                    
+                    if content_chunk:
+                        print(content_chunk, end="", flush=True)
+            else:
+                content = response.choices[0].message.content
+            
+            logging.info(f"调用完毕: {content}")
+            if content is None or content == "":
+                return "服务器繁忙，请稍后再试。"
+            return content.strip()
         except openai.APITimeoutError as e:
             logging.error(f"api timeout: {e}")
             return "api timeout"
@@ -139,23 +163,49 @@ class ChatService:
             return f"出现未知错误：{e}"
     
     async def send_by_reasoner_model(self, messages, group_id):
+        if self.api == 'tencent':
+            model = "deepseek-r1"
+        else:
+            model = "deepseek-reasoner"
         try:
             response = self.client.chat.completions.create(
-                model="deepseek-reasoner",
+                model=model,
                 messages=messages,
-                stream=False
+                stream=self.config['chat']['stream'],
+                max_tokens=self.config['chat']['max_tokens'] * 1024,
             )
-            logging.info(f"调用完毕: {response.choices[0].message}")
+
+            reasoning_content = ""
+            content = ""
+            
+            if self.config['chat']['stream']:
+                for chunk in response:
+                    if hasattr(chunk.choices[0].delta, 'reasoning_content') and chunk.choices[0].delta.reasoning_content != None:
+                        reasoning_content += chunk.choices[0].delta.reasoning_content
+                        print(chunk.choices[0].delta.reasoning_content, end="", flush=True)
+                    if hasattr(chunk.choices[0].delta, 'content') and chunk.choices[0].delta.content != None:
+                        content += chunk.choices[0].delta.content
+                        print(chunk.choices[0].delta.content, end="", flush=True)
+
+                logging.info(f"调用完毕:<think> {reasoning_content.strip()} <think> ************************ {content}")
+            else:
+                logging.info(f"调用完毕: {response.choices[0].message}")
+                reasoning_content = response.choices[0].message.reasoning_content
+                content = response.choices[0].message.content
+            
+            if content is None or content == "":
+                return "", "服务器繁忙，请稍后再试。"
+            
+
             if self.group_manager.get_config(group_id)['show_reasoning_content'] == 'default':
                 logging.info("群未配置是否显示思考过程，使用默认配置")
                 show_reasoning_content = self.config['chat']['show_reasoning_content']
             else:
                 show_reasoning_content = self.group_manager.get_config(group_id)['show_reasoning_content']
-
             if show_reasoning_content:
-                return f"<think>\n{response.choices[0].message.reasoning_content}\n<think>\n************************\n", response.choices[0].message.content
+                return f"<think>\n{reasoning_content.strip()}\n<think>\n************************\n", content.strip()
             
-            return "", response.choices[0].message.content
+            return "", content.strip()
             
         except openai.APITimeoutError as e:
             logging.error(f"api timeout: {e}")

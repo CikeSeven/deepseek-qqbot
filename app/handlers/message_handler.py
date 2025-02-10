@@ -21,6 +21,7 @@ class MessageHandler:
         self.bot_manager = BotManager()
 
     async def handle_group_message(self, event: EventMessage):
+        self.bot_manager.update_config()
         logging.info(f"Group Event: {event}")
         text = event.text.strip()
         if is_admin(event.user_id) or is_group_admin(event.group_id, event.user_id):
@@ -106,6 +107,17 @@ class MessageHandler:
                         logging.info(f"管理员 {event.user_id} 为群 {event.group_id} 移除管理员 {admins}")
                         await self.bot_service.send_group_message(event.group_id, "已移除管理员")
                     return
+                
+                if '/set api' in text.lower():
+                    parts = [part for part in text.split(' ')]
+                    if len(parts) < 3:
+                        await self.bot_service.send_group_message(event.group_id, "指令错误")
+                        return
+                    api_id = int(parts[2])
+                    success, msg = self.bot_manager.set_api(event.user_id, api_id)
+                    if success:
+                       logging.info(f"管理员 {event.user_id} 将群 {event.group_id} 设置为 API {api_id}")
+                    await self.bot_service.send_group_message(event.group_id, msg)
                 match text.lower():
                     case '/balance':
                         data = await self.bot_service.get_user_balance(event.user_id)
@@ -134,6 +146,18 @@ class MessageHandler:
                         if success:
                             logging.info(f"管理员 {event.user_id} 关闭全局显示思考过程")
                             await self.bot_service.send_group_message(event.group_id, "已关闭全局显示思考过程")
+                        return
+                    case '/stream open' | '/so':
+                        success, _ = self.bot_manager.open_stream(event.user_id)
+                        if success:
+                            logging.info(f"管理员 {event.user_id} 开启全局流式输出")
+                            await self.bot_service.send_group_message(event.group_id, "已开启流式输出")
+                        return
+                    case '/stream close' | '/sc':
+                        success, _ = self.bot_manager.close_stream(event.group_id, event.user_id)
+                        if success:
+                            logging.info(f"管理员 {event.user_id} 关闭全局流式输出")
+                            await self.bot_service.send_group_message(event.group_id, "已关闭流式输出")
                         return
 
         if(self.group_manager.group_is_open(event.group_id)):

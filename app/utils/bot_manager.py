@@ -26,6 +26,9 @@ class BotManager:
         self.config['chat']['admins'] = data.admins
         config.set_config(self.config)
         return True
+    
+    def update_config(self):
+        self.config = config.get_config()
 
     def set_model_to_v3(self, group_id, user_id):
         """设置当前群聊模型为V3"""
@@ -154,3 +157,59 @@ class BotManager:
         self.config['chat']['show_reasoning_content'] = False
         config.set_config(self.config)
         return True, "已关闭全局思考过程"
+    
+    def open_stream(self, user_id):
+        """开启流式输出"""
+        if not is_admin(user_id):
+            logging.ingo(f"非管理员账号{user_id}尝试调用open_stream")
+            return False, "开启失败，不是管理员"
+        if self.config['chat']['stream']:
+            logging.info(f"管理员{user_id}尝试重复开启流式输出")
+            return False, "开启失败， 已是开启状态"
+        self.config['chat']['stream'] = True
+        config.set_config(self.config)
+        return True, "已开启流式输出"
+    
+    def close_stream(self, group_id, user_id):
+        """关闭流式输出"""
+        if (not is_admin(user_id)) and (not is_group_admin(user_id)):
+            logging.ingo(f"非管理员账号{user_id}尝试调用close_stream")
+            return False, "关闭失败，不是管理员"
+        group_config = self.group_manager.get_config(group_id)
+        if not group_config['stream']:
+            logging.info(f"管理员{user_id}尝试重复关闭流式输出")
+            return False, "关闭失败， 已是关闭状态"
+        self.config['chat']['stream'] = False
+        config.set_config(self.config)
+        return True, "已关闭流式输出"
+    
+    def set_api(self, user_id, api_id):
+        if not is_admin(user_id):
+            logging.ingo(f"非管理员账号{user_id}尝试调用set_api")
+            return False, "设置失败，不是管理员"
+        now_api = self.config['chat']['api']
+        if now_api == 'deepseek' and api_id == 0:
+            logging.info(f"管理员{user_id}尝试重复设置api为deepseek")
+            return False, "设置失败， 已是deepseek api"
+        if now_api == 'tencent' and api_id == 1:
+            logging.info(f"管理员{user_id}尝试重复设置api为腾讯api")
+            return False, "设置失败， 已是腾讯api"
+        if api_id == 0 and self.config['key_list']['deepseek'] == '':
+            logging.warning(f"管理员{user_id}尝试设置api为deepseek，但是未设置deepseek key")
+            return False, "设置失败， 未设置deepseek key"
+        if api_id == 1 and self.config['key_list']['tencent'] == '':
+            logging.warning(f"管理员{user_id}尝试设置api为腾讯api，但是未设置腾讯api key")
+            return False, "设置失败， 未设置腾讯api key"
+        
+        if api_id == 0:
+            self.config['chat']['api'] = 'deepseek'
+            config.set_config(self.config)
+            return True, "已设置api为deepseek"
+        if api_id == 1:
+            self.config['chat']['api'] = 'tencent'
+            config.set_config(self.config)
+            return True, "已设置api为腾讯api"
+        else:
+            logging.warning(f"管理员{user_id}尝试设置api为{api_id}，但是api_id错误")
+            return False, "设置失败， api_id错误"
+        

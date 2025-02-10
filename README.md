@@ -21,6 +21,7 @@ DeepSeek QQBot 是一个基于 [LLOneBot](https://github.com/LLOneBot/LLOneBot) 
 - **深度思考**：能够处理复杂问题，提供更深入的回答。
 - **内置小工具**：集成了多种实用功能，满足多样化需求。
 - **群聊优化**：针对群聊场景专门优化，确保流畅体验。
+- **适配腾讯api**：官方速度慢？其他第三方平台的deepseek
 
 ---
 
@@ -96,7 +97,8 @@ python app/bot.py
 | `/model default`  | 切换当前群组模型为默认（跟随全局）    | 也可用简写` /md` |
 | `/think open`  | 展示当前群组R1模型的思考过程              | 也可用简写`/to`       |
 | `/think close`  | 关闭当前群组R1模型的思考过程              | 也可用简写`/tc`       |
-|            | 非群组管理员指令
+|            | 管理员指令
+| `/set api [id]`    | 更换调用的api，使用前先在配置文件添加key           |  `id:0` 官方api  <br> `id:1` 腾讯api  |
 | `/balance`  | 查询 DeepSeek API 账户余额。             |     |
 | `/admin add [qq]`  | 添加群管理员             |    后可跟多个QQ号，需用`空格`隔开|
 | `/admin rm [qq]`  | 移除群管理员             |    后可跟多个QQ号，需用`空格`隔开|
@@ -104,6 +106,8 @@ python app/bot.py
 | `/global model r1`  | 切换全局模型为V3                     | 也可用简写` /gm r1` |
 | `/global think open`  | 开启全局R1模型的思考过程              | 也可用简写`/gto`       |
 | `/global think close`  | 关闭全局R1模型的思考过程              | 也可用简写`/gtc`       |
+| `/stream open`  | 开启流式输出模式           | 也可用简写`/so`       |
+| `/stream close`  | 关闭流式输出模式              | 也可用简写`/sc`       |
 
 ---
 
