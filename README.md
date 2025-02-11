@@ -97,6 +97,7 @@ python app/bot.py
 | `/model default`  | 切换当前群组模型为默认（跟随全局）    | 也可用简写` /md` |
 | `/think open`  | 展示当前群组R1模型的思考过程              | 也可用简写`/to`       |
 | `/think close`  | 关闭当前群组R1模型的思考过程              | 也可用简写`/tc`       |
+| `/trim`  | 清除冗余信息，清理掉与机器人无关的信息（没有艾特机器人的消息）              |        |
 |            | 管理员指令
 | `/set api [id]`    | 更换调用的api，使用前先在配置文件添加key           |  `id:0` 官方api  <br> `id:1` 腾讯api  |
 | `/balance`  | 查询 DeepSeek API 账户余额。             |     |

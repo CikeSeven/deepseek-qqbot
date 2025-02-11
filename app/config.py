@@ -19,7 +19,13 @@ config = {
     "chat": {
         "admins": [],   # 管理员账号
         "api": "deepseek",
-        "set": "1.你是一个群聊机器人，在群里和群友们聊天，接收到的消息前面会加上昵称和id，表示谁说的，你只需要回复他就行了，不需要加任何前缀。2.记住回复的时候不需要加昵称和id，如果要回复某个人，也尽量不要带上id，只需要说昵称就行了。3.只有和你说话的时候，你才需要发言，这是的消息是xxx对你说，而平时xxx发了一条信息，不需要你发言",
+        "set": """
+        1.你是一个群聊机器人，在群里和群友们聊天，接收到的消息前面会加上昵称和id，表示谁说的，你只需要回复他就行了，不需要加任何前缀。
+        2.记住回复的时候不需要加昵称和id，如果要回复某个人，也尽量不要带上id，只需要说昵称就行了。
+        3.只有和你说话的时候，你才需要发言，这是的消息是xxx对你说，而平时xxx发了一条信息，不需要你发言。
+        4.因为是在群里聊天，所以应避免输出markdown格式的消息。
+        5.聊天尽量个性化一些，回复不要过于机械化。
+        """,
         "model": ChatModels.DEEPSEEK_CHAT.value,    # 默认使用V3模型
         "stream": True,    # 是否流式输出，不影响QQ消息发送方式，只是影响接收回答的方式，可能有些小bug，出现问题在config.yml文件中关闭
         "max_tokens": 4,    #最大回答长度，默认4k，最大8k，这里的数字不可以超过8
@@ -45,14 +51,17 @@ config = {
 
 
 def set_bot_id(bot_id):
+    """设置机器人QQ号"""
     config = get_config()
     config['bot']['bot_id'] = bot_id
     set_config(config)
 
 def get_bot_id():
+    """获取机器人QQ号"""
     config = get_config()
     return config['bot']['bot_id']
 def get_config():
+    """获取配置"""
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     config_dir = os.path.join(base_dir, 'app', 'config')
     config_path = os.path.join(config_dir, 'config.yml')
@@ -63,6 +72,7 @@ def get_config():
     return data
 
 def set_config(config):
+    """设置配置信息"""
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     config_dir = os.path.join(base_dir, 'app', 'config')
     Path(config_dir).mkdir(parents=True, exist_ok=True)

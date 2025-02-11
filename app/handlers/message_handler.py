@@ -83,6 +83,12 @@ class MessageHandler:
                         logging.info(f"管理员 {event.user_id} 将群 {event.group_id} 思考过程显示方式切换为 default")
                         await self.bot_service.send_group_message(event.group_id, "已切换思考过程显示方式为默认")
                     return
+                case '/trim':
+                    success, _ = self.bot_manager.trim_messages(event.group_id, event.user_id)
+                    if success:
+                        logging.info(f"管理员 {event.user_id} 将群 {event.group_id} 消息缓存清理")
+                        await self.bot_service.send_group_message(event.group_id, "已清理")
+                    return
             if is_admin(event.user_id):
                 if '/admin add' in text.lower():
                     parts = [part for part in text.split(' ')]

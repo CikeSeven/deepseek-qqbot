@@ -1,5 +1,8 @@
 
+import json
 import logging
+import os
+from pathlib import Path
 import config
 from utils.group_manager import GroupManager
 from utils.admin_check import is_admin, is_group_admin
@@ -184,6 +187,11 @@ class BotManager:
         return True, "已关闭流式输出"
     
     def set_api(self, user_id, api_id):
+        """
+        设置api
+        0：deepseek api
+        1：腾讯api
+        """
         if not is_admin(user_id):
             logging.ingo(f"非管理员账号{user_id}尝试调用set_api")
             return False, "设置失败，不是管理员"
@@ -213,3 +221,38 @@ class BotManager:
             logging.warning(f"管理员{user_id}尝试设置api为{api_id}，但是api_id错误")
             return False, "设置失败， api_id错误"
         
+
+    def trim_messages(self, group_id, user_id):
+        """清理冗余信息"""
+        if (not is_admin(user_id)) and (not is_group_admin(user_id)):
+            logging.ingo(f"非管理员账号{user_id}尝试调用trim_messages")
+            return False, "清理失败，不是管理员"
+        messages_file = Path(self.group_manager.get_group_messages_path(group_id))
+        if not messages_file.exists():
+            logging.info(f"管理员{user_id}尝试清理不存在的群聊{group_id}的冗余信息")
+            return False, "清理失败， 群聊不存在"
+        
+        with open(messages_file, 'r', encoding='utf-8') as f:
+            messages = json.load(f)
+        if len(messages) <= 3:
+            logging.info(f"管理员{user_id}尝试清理群聊{group_id}的冗余信息，但是信息数量小于10")
+            return False, "清理失败， 信息数量小于3"
+        
+        filtered_messages = []
+        filtered_messages.append(messages[0])
+        i = 1   #第一条为system消息
+        while i < len(messages) - 1:
+            if(
+                messages[i]['role'] == 'user'
+                and messages[i+1]['role'] == 'assistant'
+                and messages[i+1]['content'] == '此消息与我不相关，不需要回复'
+            ):
+                i += 2
+            else:
+                filtered_messages.append(messages[i])
+                i += 1
+
+        with open(messages_file, 'w', encoding='utf-8') as f:
+            json.dump(filtered_messages, f, ensure_ascii=False, indent=4)
+
+        return True, "已清理冗余信息"
