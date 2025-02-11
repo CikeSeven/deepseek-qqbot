@@ -84,10 +84,10 @@ class MessageHandler:
                         await self.bot_service.send_group_message(event.group_id, "已切换思考过程显示方式为默认")
                     return
                 case '/trim':
-                    success, _ = self.bot_manager.trim_messages(event.group_id, event.user_id)
+                    success, count, _ = self.bot_manager.trim_messages(event.group_id, event.user_id)
                     if success:
-                        logging.info(f"管理员 {event.user_id} 将群 {event.group_id} 消息缓存清理")
-                        await self.bot_service.send_group_message(event.group_id, "已清理")
+                        logging.info(f"管理员 {event.user_id} 清理群 {event.group_id} 冗余消息{count}条")
+                        await self.bot_service.send_group_message(event.group_id, f"已清理{count}条")
                     return
             if is_admin(event.user_id):
                 if '/admin add' in text.lower():
@@ -203,6 +203,20 @@ class MessageHandler:
                     return
                 except Exception as e:
                     logging.warning(e)
+            if '/trim ' in text:
+                try:
+                    parts = [part for part in text.split(' ')]
+                    if len(parts) < 2:
+                        await self.bot_service.send_private_message(event.user_id, "指令错误")
+                        return
+                    group_id = parts[1]
+                    logging.info(f"管理员{event.user_id}清理群组{group_id}冗余信息")
+                    success, count, _ = self.bot_manager.trim_messages(group_id, event.user_id)
+                    await self.bot_service.send_private_message(event.user_id, f"清理{count}条信息")
+                    return
+                except Exception as e:
+                    logging.warning(e)
+
 
     async def preprocess_message(self, data):
         import config
