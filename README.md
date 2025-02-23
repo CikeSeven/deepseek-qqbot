@@ -40,7 +40,7 @@ cd deepseek-qqbot
 python -m venv .env
 # 激活虚拟环境
 source .env/bin/activate  # Linux/MacOS
-.env\Scripts\activate      # Windows
+.\.env\Scripts\activate      # Windows
 ```
 
 ### 3. 安装依赖
